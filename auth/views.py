@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import (
@@ -8,6 +8,9 @@ from .serializers import (
     ExpenseSerializer,
 )
 from .models import BarberOrder, CocktailOrder, Expense
+from rest_framework.views import APIView
+import requests
+from django.conf import settings
 
 
 class AdminTokenObtainPairView(TokenObtainPairView):
@@ -48,3 +51,32 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     queryset = Expense.objects.all()
     serializer_class = ExpenseSerializer
     permission_classes = [IsStaffOnly]
+
+
+class ComplaintView(APIView):
+    def post(self, request):
+        full_name = request.data.get('fullName')
+        phone = request.data.get('phone')
+        message = request.data.get('message')
+
+        # Compose the message for Telegram
+        text = f"📝 Yangi shikoyat:\n\n👤 Ism: {full_name}\n📞 Telefon: {phone}\n💬 Xabar: {message}"
+
+        # Telegram bot config
+        TELEGRAM_BOT_TOKEN = settings.TELEGRAM_BOT_TOKEN
+        TELEGRAM_CHAT_ID = settings.TELEGRAM_CHAT_ID
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+
+        payload = {
+            'chat_id': TELEGRAM_CHAT_ID,
+            'text': text
+        }
+
+        try:
+            resp = requests.post(url, data=payload)
+            if resp.status_code == 200:
+                return Response({'success': True}, status=status.HTTP_200_OK)
+            else:
+                return Response({'success': False, 'error': 'Telegram error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            return Response({'success': False, 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
