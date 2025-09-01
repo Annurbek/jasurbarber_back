@@ -34,7 +34,6 @@ class CocktailOrder(models.Model):
         ('ready', 'Ready'),
         ('accepted', 'Accepted'),
     ]
-
     date = models.CharField(max_length=100, help_text="Date of the order (text)")
     service_name = models.CharField(max_length=255, help_text="Cocktail/drink name (text)")
     number_stol = models.IntegerField(help_text="Table number (integer)")
