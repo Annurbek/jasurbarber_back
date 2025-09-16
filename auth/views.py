@@ -1,6 +1,10 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.decorators import authentication_classes
+from rest_framework.authentication import SessionAuthentication
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from .serializers import (
     AdminTokenObtainPairSerializer,
     BarberOrderSerializer,
@@ -13,8 +17,11 @@ import requests
 from django.conf import settings
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class AdminTokenObtainPairView(TokenObtainPairView):
     serializer_class = AdminTokenObtainPairSerializer
+    authentication_classes = []  # Disable authentication classes for this view
+    permission_classes = []  # Disable permission classes for this view
 
     # Ensure proper response to CORS preflight and OPTIONS introspection
     def options(self, request, *args, **kwargs):
